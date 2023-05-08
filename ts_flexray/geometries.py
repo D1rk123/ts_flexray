@@ -130,7 +130,7 @@ def make_flexray_geometries(path, profile=None, skip_last=True):
     geom_dict = parse_scan_settings(path)
     apply_roi_offset(geom_dict)
     if profile is not None:
-        apply_calibration_profile(geom_dict, profile)
+        apply_calibration_profile(geom_dict, profile=profiles[profile])
         
     pixel_size = geom_dict["Binned pixel size"]
     roi = geom_dict["ROI (LTRB)"]
