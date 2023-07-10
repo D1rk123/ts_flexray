@@ -123,6 +123,7 @@ def parse_scan_settings(path):
                 geom_dict[key] = [int(x) for x in value.split(",")]
     
     geom_dict["Voxel size"] *= 1e-3 #Convert um to mm
+    geom_dict["ODD"] = geom_dict["SDD"]-geom_dict["SOD"]
                 
     return geom_dict
 
@@ -142,7 +143,7 @@ def make_flexray_geometries(path, profile=None, skip_last=True):
     pg = ts.cone_vec(
 	    shape = det_shape,
         src_pos = (geom_dict["ver_tube"], -geom_dict["SOD"], geom_dict["tra_tube"]),
-        det_pos = (geom_dict["ver_det"], geom_dict["SDD"]-geom_dict["SOD"], geom_dict["tra_det"]),
+        det_pos = (geom_dict["ver_det"], geom_dict["ODD"], geom_dict["tra_det"]),
         det_v = det_v,
         det_u = det_u
     )
@@ -154,9 +155,10 @@ def make_flexray_geometries(path, profile=None, skip_last=True):
         ))
     if skip_last:
         angles = angles[:-1]
-    #vol_ver = (geom_dict["SOD"]*geom_dict["ver_tube"]
-    #        + (geom_dict["SDD"]-geom_dict["SOD"])*geom_dict["ver_det"]) / geom_dict["SDD"]
-    vol_pos = np.array((geom_dict["ver_det"], 0, geom_dict["tra_obj"]))
+
+    vol_ver = (geom_dict["ver_det"]*geom_dict["SOD"] +
+               geom_dict["ver_tube"]*geom_dict["ODD"]) / geom_dict["SDD"]
+    vol_pos = np.array((vol_ver, 0, geom_dict["tra_obj"]))
     vol_shape = np.array((det_shape[0], det_shape[1], det_shape[1]))
     
     rot = ts.rotate(pos=vol_pos, axis=np.array((-1, 0, 0)), angles=angles)
