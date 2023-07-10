@@ -156,7 +156,7 @@ def make_flexray_geometries(path, profile=None, skip_last=True):
         angles = angles[:-1]
     #vol_ver = (geom_dict["SOD"]*geom_dict["ver_tube"]
     #        + (geom_dict["SDD"]-geom_dict["SOD"])*geom_dict["ver_det"]) / geom_dict["SDD"]
-    vol_pos = np.array((geom_dict["ver_det"], 0, -geom_dict["tra_obj"]))
+    vol_pos = np.array((geom_dict["ver_det"], 0, geom_dict["tra_obj"]))
     vol_shape = np.array((det_shape[0], det_shape[1], det_shape[1]))
     
     rot = ts.rotate(pos=vol_pos, axis=np.array((-1, 0, 0)), angles=angles)
