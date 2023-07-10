@@ -85,10 +85,10 @@ def apply_roi_offset(geom_dict):
     centre = [(roi[0] + roi[2]) // 2 - 971, (roi[1] + roi[3]) // 2 - 767]
     detector_pixel_size = 0.0748
 
-    ver_tube = centre[1] * detector_pixel_size
+    ver_det = centre[1] * detector_pixel_size
     tra_det = centre[0] * detector_pixel_size
 
-    geom_dict['ver_tube'] += ver_tube
+    geom_dict['ver_det'] += ver_det
     geom_dict['tra_det'] += tra_det
 
 def apply_calibration_profile(geom_dict, profile):
