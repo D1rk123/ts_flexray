@@ -86,7 +86,7 @@ https://github.com/cicwi/flexDATA/commit/8859bc8073880efcb32cc57b152ef23746993ec
 }
     
 def apply_roi_offset(geom_dict):
-    roi = geom_dict['ROI (LTRB)']
+    roi = geom_dict['ROI']
 
     # ROI is written for a pixel in 1x1 binning, so the centre of the detector
     # is at (767,971), and detector pixel size 74.8 um
@@ -105,44 +105,47 @@ def apply_calibration_profile(geom_dict, profile):
                 continue
         geom_dict[key] += profile[key]
 
-def parse_scan_settings(path):
-    float_keys = ["Voxel size", "SOD", "SDD", "Start angle", "Last angle", "Binned pixel size"]
-    int_keys = ["# projections", "Binning value"]
-    position_keys = ["ver_tube", "tra_tube", "ver_det", "tra_det", "tra_obj"]
-    roi_key = "ROI (LTRB)"
+def parse_data_settings(path):
+    float_keys = [
+        "Voxel size", "Binned pixelsize (mm)",
+        "SOD", "SDD",
+        "Start angle", "Last angle",
+        "ver_tube", "tra_tube", "ver_det", "tra_det", "tra_obj"]
+    int_keys = ["total projections", "Binning value"]
+    roi_key = "ROI"
     
     geom_dict = {"roll_det" : 0}
     with open(path, "r") as file:
         for line in file:
-            split_point =  line.find(":")
+            split_point =  line.find("=")
             if split_point == -1:
                 continue
 
             key = line[:split_point].strip()
             value = line[split_point+1:]
+            value = value.replace('"', '')
             
+            if key in geom_dict.keys():
+                continue
+
             if key in float_keys:
                 geom_dict[key] = float(value)
             if key in int_keys:
-                geom_dict[key] = int(value)
-            if key in position_keys:
-                geom_dict[key] = float(value[:value.find(";")])
+                geom_dict[key] = int(float(value))
             if key == roi_key:
-                geom_dict[key] = [int(x) for x in value.split(",")]
-    
-    geom_dict["Voxel size"] *= 1e-3 #Convert um to mm
+                geom_dict[key] = [int(x) for x in value.split(";")]
+
     geom_dict["ODD"] = geom_dict["SDD"]-geom_dict["SOD"]
-                
     return geom_dict
 
-def make_flexray_geometries(path, profile=None, skip_last=True):
-    geom_dict = parse_scan_settings(path)
+def make_flexray_geometries(path, profile=None, skip_last=True, data_settings_file_name="data settings XRE.txt"):
+    geom_dict = parse_data_settings(path / data_settings_file_name)
     apply_roi_offset(geom_dict)
     if profile is not None:
         apply_calibration_profile(geom_dict, profile=profiles[profile])
         
-    pixel_size = geom_dict["Binned pixel size"]
-    roi = geom_dict["ROI (LTRB)"]
+    pixel_size = geom_dict["Binned pixelsize (mm)"]
+    roi = geom_dict["ROI"]
     det_shape = np.array((roi[3]-roi[1]+1, roi[2]-roi[0]+1)) // geom_dict["Binning value"]
     roll_det = np.radians(geom_dict["roll_det"])
     det_v = np.array((math.cos(roll_det), 0, math.sin(roll_det))) * pixel_size
@@ -159,7 +162,7 @@ def make_flexray_geometries(path, profile=None, skip_last=True):
     angles = np.radians(np.linspace(
         geom_dict["Start angle"],
         geom_dict["Last angle"],
-        geom_dict["# projections"]
+        geom_dict["total projections"]
         ))
     if skip_last:
         angles = angles[:-1]
