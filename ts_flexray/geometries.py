@@ -26,9 +26,9 @@ profiles = {
         'description': """
 Correction profile deduced from Acquila hc/vc/cor settings after the exchange of the detector motor.
 """,
-        'det_tan': 24.1215,
-        'src_ort': -6.2917,
-        'axs_tan': -0.5405
+        'tra_det': 24.1215,
+        'ver_tube': -6.2917,
+        'tra_obj': -0.5405
     },
     'cwi-flexray-2022-10-28': {
         'description': """
